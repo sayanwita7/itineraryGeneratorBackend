@@ -1,0 +1,9 @@
+Flask
+flask-mysqldb
+mysqlclient
+Werkzeug
+flask-cors
+pymongo
+dotenv
+pandas
+certifi
