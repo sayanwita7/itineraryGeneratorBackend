@@ -6,7 +6,7 @@ import os
 import certifi
 from dotenv import load_dotenv
 import re
-
+from model.kolkata_itinerary import fetch_itinerary
 
 load_dotenv()
 uri=os.getenv("MONGO_DB_URL")
@@ -108,19 +108,30 @@ def predict():
         budget = data.get('budget')
         grouptype = data.get('grouptype')
         arrival = data.get('arrival')
-        hotel = hotel_col.find_one({"Nearby": arrival, "Budget": budget})
-        if hotel:
-            hotel["_id"]=str(hotel["_id"])
+        start_location="Hotel"
+        
         suggestion = itinerary_col.find_one({
             "Duration": duration,
             "Budget": budget,
             "GroupType": grouptype,
-            "Hotel": hotel['hotelId']
+            "Arrival":arrival
         })
         if suggestion:
-            return jsonify({"suggestions": suggestion['Suggestion']})
+            return jsonify({
+                "message": "Itinerary Generated",
+                "Hotel": suggestion["Suggestions"]["Hotel"],   # nested
+                "Itinerary": suggestion["Suggestions"]["Itinerary"]  # nested
+            })
         else:
-            return jsonify({"Error": "Recommendations not found", "Hotel": hotel})
+            res=fetch_itinerary(duration, budget, grouptype, arrival, start_location)
+            itinerary_col.insert_one({
+                "Duration": duration,
+                "Budget": budget,
+                "GroupType": grouptype,
+                "Arrival":arrival,
+                "Suggestions":res
+            })
+            return jsonify({"message":"Itinerary Generated", "Hotel":res["Hotel"], "Itinerary":res["Itinerary"] })
 
 # ---------------------- SAVE ITINERARY ----------------------
 @app.route("/itinerary/save", methods=['POST'])
