@@ -102,7 +102,6 @@ def logOut():
 @app.route("/itinerary/predict", methods=['POST'])
 def predict():
     budget_value = {"Low": 1000, "Mid": 3000, "High": 5000}
-    
     data = request.get_json()
     duration = data.get('duration')
     budget = data.get('budget')
@@ -160,7 +159,9 @@ def predict():
 
 @app.route("/user/history", methods=['POST'])
 def userHistory():
-    username = session.get('user')
+    # username = session.get('user')
+    data = request.get_json()
+    username=data.get('username')
     if not username:
         return jsonify({"error": "User not logged in"}), 401
     user = users_col.find_one({"username": username}, {"password": 0})
